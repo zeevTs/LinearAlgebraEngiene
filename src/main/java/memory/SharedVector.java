@@ -10,57 +10,79 @@ public class SharedVector {
 
     public SharedVector(double[] vector, VectorOrientation orientation) {
         // TODO: store vector data and its orientation
+        this.orientation = orientation;
+        this.vector = new double[vector.length];
+        for(int i=0;i<vector.length;i++){
+            this.vector[i] = vector[i];
+        }
     }
 
     public double get(int index) {
         // TODO: return element at index (read-locked)
-        return 0;
+        return vector[index];
     }
 
     public int length() {
         // TODO: return vector length
-        return 0;
+        return vector.length;
     }
 
     public VectorOrientation getOrientation() {
         // TODO: return vector orientation
-        return null;
+        return orientation;
     }
 
     public void writeLock() {
-        // TODO: acquire write lock
+        lock.writeLock().lock();
     }
 
     public void writeUnlock() {
-        // TODO: release write lock
+        lock.writeLock().unlock();
     }
 
     public void readLock() {
-        // TODO: acquire read lock
+        lock.readLock().lock();
     }
 
     public void readUnlock() {
-        // TODO: release read lock
+        lock.readLock().unlock();
     }
 
     public void transpose() {
-        // TODO: transpose vector
+        orientation = orientation == VectorOrientation.ROW_MAJOR ? VectorOrientation.COLUMN_MAJOR : VectorOrientation.ROW_MAJOR;
     }
 
     public void add(SharedVector other) {
         // TODO: add two vectors
+        for(int i=0;i<vector.length;i++){
+            vector[i]=vector[i]+other.get(i);
+        }
     }
 
     public void negate() {
         // TODO: negate vector
+        for(int i=0;i<vector.length;i++){
+            vector[i]= -vector[i];
+        }
     }
 
     public double dot(SharedVector other) {
         // TODO: compute dot product (row · column)
-        return 0;
+        double result = 0;
+        for(int i=0;i<vector.length;i++){
+           result = vector[i]*other.get(i);
+        }
+        return result;
     }
 
     public void vecMatMul(SharedMatrix matrix) {
         // TODO: compute row-vector × matrix
+        double[] result = new double[length()];
+        for(int i=0;i< length();i++){
+           vector[i]=dot(matrix.get(i));
+        }
+        vector = result;
     }
+
+
 }
