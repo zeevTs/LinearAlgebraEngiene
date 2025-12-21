@@ -52,23 +52,18 @@ public class TiredExecutor {
     }
 
     public void submitAll(Iterable<Runnable> tasks) {
-        // TODO: submit tasks one by one and wait until all finish
-            int i =0;
-            for (Runnable task : tasks) {
-                submit(task);
-                i++;
-            }
-            // Lock the AtomicInteger itself to wait\
-            synchronized (inFlight) {
-                while (i >0) {
-                    try {
-                        inFlight.wait(); // This works!
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    i--;
+        for (Runnable task : tasks) {
+            submit(task);
+        }
+        synchronized (inFlight) {
+            while (inFlight.get() > 0) { // Check the actual atomic counter
+                try {
+                    inFlight.wait();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
+        }
     }
 
     public void shutdown() throws InterruptedException {
@@ -88,7 +83,30 @@ public class TiredExecutor {
                     "\tTime used: " + worker.getTimeUsed() + "\tTime idle: " + worker.getTimeIdle();
             reports.append(report).append("\n");
         }
+
+        reports.append("----------------------------------------\n");
+        reports.append("Fairness Score (Lower is better): ")
+                .append(String.format("%.4f", getFairnessScore()));
+
         return reports.toString();
+    }
+
+    private double getFairnessScore() {
+        // Calculate fatigue average
+        double totalFatigue = 0;
+        for (TiredThread worker : workers) {
+            totalFatigue += worker.getFatigue();
+        }
+        double averageFatigue = totalFatigue / workers.length;
+
+        // Calculating the time of squared deviations from the average
+        double sumSquaredDeviations = 0;
+        for (TiredThread worker : workers) {
+            double deviation = worker.getFatigue() - averageFatigue;
+            sumSquaredDeviations += (deviation * deviation);
+        }
+
+        return sumSquaredDeviations;
     }
 
 

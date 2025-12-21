@@ -70,18 +70,24 @@ public class SharedVector {
         // TODO: compute dot product (row · column)
         double result = 0;
         for(int i=0;i<vector.length;i++){
-           result = vector[i]*other.get(i);
+           result += vector[i]*other.get(i);
         }
         return result;
     }
 
     public void vecMatMul(SharedMatrix matrix) {
         // TODO: compute row-vector × matrix
-        double[] result = new double[length()];
-        for(int i=0;i< length();i++){
-           vector[i]=dot(matrix.get(i));
+        double[] result = new double[matrix.length()];
+        for(int i=0;i< matrix.length();i++){
+            SharedVector column = matrix.get(i);
+            column.readLock();
+            try {
+                result[i] = this.dot(column);
+            } finally {
+                column.readUnlock();
+            }
         }
-        vector = result;
+        this.vector = result;
     }
 
 

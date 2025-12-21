@@ -17,30 +17,49 @@ public class SharedMatrix {
 
     public void loadRowMajor(double[][] matrix) {
         // TODO: replace internal data with new row-major matrix
-        for(int i=0;i<matrix.length;i++){
-            vectors[i] = new SharedVector(matrix[i],VectorOrientation.ROW_MAJOR);
+        SharedVector[] newVectors = new SharedVector[matrix.length];
+        for(int i=0 ; i<matrix.length ; i++){
+            SharedVector vector = new SharedVector(matrix[i], VectorOrientation.ROW_MAJOR);
+            newVectors[i] = vector;
         }
+        this.vectors = newVectors;
     }
 
     public void loadColumnMajor(double[][] matrix) {
-        // TODO: replace internal data with new column-major matrix
-        for(int i=0;i<matrix.length;i++){
-            vectors[i] = new SharedVector(matrix[i],VectorOrientation.COLUMN_MAJOR);
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        SharedVector[] newVectors = new SharedVector[cols];
+
+        for (int col = 0; col < cols; col++) {
+            double[] columnData = new double[rows];
+            for (int row = 0; row < rows; row++) {
+                columnData[row] = matrix[row][col];
+            }
+            newVectors[col] = new SharedVector(columnData, VectorOrientation.COLUMN_MAJOR);
         }
+
+        this.vectors = newVectors;
     }
 
     public double[][] readRowMajor() {
-        // TODO: return matrix contents as a row-major double[][]
-        double[][] result = new double[vectors.length][vectors[0].length()];
-        if(getOrientation() == VectorOrientation.COLUMN_MAJOR){
-            for(int i=0;i<vectors.length;i++){
-                for(int j=0;i< vectors[i].length();i++){
-                    result[i][j] = vectors[j].get(i);
+        double[][] result;
+
+        if (getOrientation() == VectorOrientation.COLUMN_MAJOR) {
+            int numCols = vectors.length;
+            int numRows = vectors[0].length();
+
+            result = new double[numRows][numCols];
+
+            for (int i = 0; i < numCols; i++) {
+                for (int j = 0; j < numRows; j++) {
+                    result[j][i] = vectors[i].get(j);
                 }
             }
-        }else {
+        } else {
+            result = new double[vectors.length][vectors[0].length()];
             for (int i = 0; i < vectors.length; i++) {
-                for (int j = 0; i < vectors[i].length(); i++) {
+                for (int j = 0; j < vectors[i].length(); j++) {
                     result[i][j] = vectors[i].get(j);
                 }
             }
