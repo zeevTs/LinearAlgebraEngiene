@@ -78,9 +78,17 @@ public class TiredExecutor {
     public synchronized String getWorkerReport() {
         // TODO: return readable statistics for each worker
         StringBuilder reports = new StringBuilder();
-        for(TiredThread worker : workers){
-            String report = "Worker " + worker.getWorkerId() + ":\tFatigue: " + worker.getFatigue() +
-                    "\tTime used: " + worker.getTimeUsed() + "\tTime idle: " + worker.getTimeIdle();
+
+        for (TiredThread worker : workers) {
+            // Converting nano seconds into milli seconds
+            long usedMs = worker.getTimeUsed() / 1_000_000;
+            long idleMs = worker.getTimeIdle() / 1_000_000;
+
+            String report = "Worker " + worker.getWorkerId() +
+                    ":\tFatigue: " + worker.getFatigue() +
+                    "\tTime used: " + usedMs + " ms" +
+                    "\tTime idle: " + idleMs + " ms";
+
             reports.append(report).append("\n");
         }
 

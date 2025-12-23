@@ -62,7 +62,7 @@ public class SharedVector {
     public void negate() {
         // TODO: negate vector
         for(int i=0;i<vector.length;i++){
-            vector[i]= -vector[i];
+            vector[i] = -vector[i];
         }
     }
 
