@@ -6,6 +6,7 @@ public class SharedMatrix {
 
     public SharedMatrix() {
         // TODO: initialize empty matrix
+        vectors = new SharedVector[0];
     }
 
     public SharedMatrix(double[][] matrix) {
@@ -44,8 +45,10 @@ public class SharedMatrix {
 
     public double[][] readRowMajor() {
         acquireAllVectorReadLocks(vectors);
-        try{
+
+        try {
             double[][] result;
+
             if (getOrientation() == VectorOrientation.COLUMN_MAJOR) {
                 int numCols = vectors.length;
                 int numRows = vectors[0].length();
@@ -66,10 +69,9 @@ public class SharedMatrix {
                 }
             }
             return result;
-        }finally {
+        } finally {
             releaseAllVectorReadLocks(vectors);
         }
-
     }
 
     public SharedVector get(int index) {
