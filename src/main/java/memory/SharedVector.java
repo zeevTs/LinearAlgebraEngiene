@@ -75,7 +75,8 @@ public class SharedVector {
         return result;
     }
 
-
+    // in this operation we did use the locks on each column of the matrix because otherwise,
+    // we had to lock the entire matrix on the lae so instead we used the lock here on every column of the matrix
     public void vecMatMul(SharedMatrix matrix) {
         // TODO: compute row-vector × matrix
         double[] result = new double[matrix.length()];

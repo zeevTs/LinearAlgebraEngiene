@@ -12,14 +12,15 @@ public class TiredExecutor {
     private final PriorityBlockingQueue<TiredThread> idleMinHeap = new PriorityBlockingQueue<>();
     private final AtomicInteger inFlight = new AtomicInteger(0);
 
+
     public TiredExecutor(int numThreads) {
         // TODO
-        workers = new TiredThread[numThreads];// placeholder
+        workers = new TiredThread[numThreads];
         for(int i=0;i<numThreads;i++){
-            double fatigue = Math.random() + 0.5;
-            TiredThread thread = new TiredThread(i, fatigue);
+            double fatigueFactor = Math.random() + 0.5; // Generating a random value between 0.5 to 1.5 representing the fatigue factor
+            TiredThread thread = new TiredThread(i, fatigueFactor);
             workers[i] = thread;
-            idleMinHeap.add(thread);
+            idleMinHeap.add(thread); // At first, all of the threads are idle
             thread.start();
         }
 
@@ -29,7 +30,9 @@ public class TiredExecutor {
         // TODO
         try {
             inFlight.incrementAndGet();
-            TiredThread threadToSubmit = idleMinHeap.take();
+            TiredThread threadToSubmit = idleMinHeap.take(); // take will retrieve and remove the head of this queue, waiting if necessary until an element becomes available.
+            // the wrapped task is to make sure that the inFlight and idleMinHeap are updated after the thread finishes the task.
+            // also after the thread finishes the task we want to notify the other threads (in case inFlight=0) because it means that all of the tasks completed
             Runnable wrappedTask = () -> {
                 try{
                     task.run();
@@ -56,7 +59,7 @@ public class TiredExecutor {
             submit(task);
         }
         synchronized (inFlight) {
-            while (inFlight.get() > 0) { // Check the actual atomic counter
+            while (inFlight.get() > 0) { // Checking if there is some busy workers, because we need to wait until all of the tasks are finished
                 try {
                     inFlight.wait();
                 } catch (InterruptedException e) {
@@ -69,7 +72,7 @@ public class TiredExecutor {
     public void shutdown() throws InterruptedException {
         // TODO
         for(TiredThread worker: workers){
-            worker.shutdown();
+            worker.shutdown(); // shutdown the worker
             if (Thread.interrupted())
                 throw new InterruptedException();
         }
@@ -99,6 +102,9 @@ public class TiredExecutor {
         return reports.toString();
     }
 
+    /**
+     * @return the fairness score of the workers
+     */
     private double getFairnessScore() {
         // Calculate fatigue average
         double totalFatigue = 0;

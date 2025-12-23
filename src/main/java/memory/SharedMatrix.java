@@ -26,6 +26,7 @@ public class SharedMatrix {
         this.vectors = newVectors;
     }
 
+    // we load a column matrix by iterating over all the columns of the matrix and getting a vector of the value of each row and saving the vector as column vectors
     public void loadColumnMajor(double[][] matrix) {
         int rows = matrix.length;
         int cols = matrix[0].length;
@@ -42,7 +43,7 @@ public class SharedMatrix {
 
         this.vectors = newVectors;
     }
-
+    // if its a matrix by rows we simply get vectors[i][j] else we do get [j][i]
     public double[][] readRowMajor() {
         acquireAllVectorReadLocks(vectors);
 

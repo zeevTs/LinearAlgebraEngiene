@@ -67,19 +67,19 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * Inserts a poison pill so the worker wakes up and exits.
      */
     public void shutdown() {
-       // TODO
+        // TODO
         alive.set(false);
         handoff.offer(POISON_PILL);
     }
 
     @Override
     public void run() {
-       // TODO
+        // TODO
         while (alive.get()) { //loops while the thread hasn't been shut down(alive is true)
             try {
                 Runnable task = handoff.take();
                 if (task == POISON_PILL) { //checks if it's the shut down task
-                    break;
+                    return;
                 }
                 busy.set(true);
                 long startWorkTime = System.nanoTime();
@@ -94,7 +94,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                break;
+                return;
             }
         }
     }
