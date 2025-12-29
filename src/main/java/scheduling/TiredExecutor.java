@@ -34,10 +34,13 @@ public class TiredExecutor {
             // the wrapped task is to make sure that the inFlight and idleMinHeap are updated after the thread finishes the task.
             // also after the thread finishes the task we want to notify the other threads (in case inFlight=0) because it means that all of the tasks completed
             Runnable wrappedTask = () -> {
+                long startWorkTime = System.nanoTime();
+                threadToSubmit.addTimeIdle(startWorkTime - threadToSubmit.getIdleStartTime());
                 try{
                     task.run();
                 }
                 finally{
+                    threadToSubmit.addTimeUsed(System.nanoTime()- startWorkTime);
                     inFlight.decrementAndGet();
                     idleMinHeap.add(threadToSubmit);
                     if(inFlight.get() ==0) {
@@ -45,6 +48,7 @@ public class TiredExecutor {
                             inFlight.notifyAll();
                         }
                     }
+
                 }
             };
             threadToSubmit.newTask(wrappedTask);
@@ -83,14 +87,13 @@ public class TiredExecutor {
         StringBuilder reports = new StringBuilder();
 
         for (TiredThread worker : workers) {
-            // Converting nano seconds into milli seconds
-            long usedMs = worker.getTimeUsed() / 1_000_000;
-            long idleMs = worker.getTimeIdle() / 1_000_000;
+            long usedNs = worker.getTimeUsed();
+            long idleNs = worker.getTimeIdle();
 
             String report = "Worker " + worker.getWorkerId() +
                     ":\tFatigue: " + worker.getFatigue() +
-                    "\tTime used: " + usedMs + " ms" +
-                    "\tTime idle: " + idleMs + " ms";
+                    "\tTime used: " + usedNs + " ns" +
+                    "\tTime idle: " + idleNs + " ns";
 
             reports.append(report).append("\n");
         }

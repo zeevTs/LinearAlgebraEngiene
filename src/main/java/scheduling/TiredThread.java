@@ -42,9 +42,14 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         return busy.get();
     }
 
+    public long getIdleStartTime() {
+        return idleStartTime.get();
+    }
+
     public long getTimeUsed() {
         return timeUsed.get();
     }
+
 
     public long getTimeIdle() {
         return timeIdle.get();
@@ -82,13 +87,10 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
                     return;
                 }
                 busy.set(true);
-                long startWorkTime = System.nanoTime();
-                timeIdle.addAndGet(startWorkTime - idleStartTime.get());
                 try {
                     task.run();
                 }
                 finally {
-                    timeUsed.addAndGet(System.nanoTime()- startWorkTime);
                     idleStartTime.set(System.nanoTime());
                     busy.set(false);
                 }
@@ -97,6 +99,14 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
                 return;
             }
         }
+    }
+
+    public void addTimeIdle(long timeIdle){
+        this.timeIdle.addAndGet(timeIdle);
+    }
+
+    public void addTimeUsed(long timeUsed){
+        this.timeUsed.addAndGet(timeUsed);
     }
 
     @Override

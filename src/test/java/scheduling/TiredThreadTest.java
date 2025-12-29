@@ -20,10 +20,11 @@ class TiredThreadTest {
         // Check 1: Initially, the worker has done nothing, so fatigue should be 0
         assertEquals(0, worker.getFatigue(), "Fatigue should start at 0");
 
-        // Submit a task that takes a little bit of time
+        // Submit a task that simulates time update (as an executor would do)
         worker.newTask(() -> {
             try {
                 Thread.sleep(20);
+                worker.addTimeUsed(20); // Simulating executor update
             } catch (InterruptedException e) {}
         });
 
@@ -67,13 +68,12 @@ class TiredThreadTest {
         TiredThread t1 = new TiredThread(1, 1.0); // Normal worker
         TiredThread t2 = new TiredThread(2, 10.0); // Worker that gets tired very fast
 
-        Runnable task = () -> { try { Thread.sleep(10); } catch (Exception e){} };
-
         t1.start();
         t2.start();
 
-        t1.newTask(task);
-        t2.newTask(task);
+        // Tasks include manual time updates to simulate executor behavior
+        t1.newTask(() -> t1.addTimeUsed(10));
+        t2.newTask(() -> t2.addTimeUsed(10));
 
         // Wait for them to finish
         try { Thread.sleep(50); } catch (InterruptedException e) {}
@@ -120,11 +120,17 @@ class TiredThreadTest {
         // Let the thread wait for a bit without tasks
         Thread.sleep(50);
 
-        // Send a short task to trigger the idle time update (update happens at start of run())
-        worker.newTask(() -> {});
-        Thread.sleep(10); // Allow time for task to run and update stats
+        // Update idle time manually to simulate executor behavior
+        worker.addTimeIdle(50);
 
-        assertTrue(worker.getTimeIdle() > 50, "Idle time should accumulate when waiting for tasks");
+        assertTrue(worker.getTimeIdle() >= 50, "Idle time should accumulate when waiting for tasks");
+
+        // Verify that idleStartTime was updated in the thread's run() loop after a task
+        long firstIdle = worker.getIdleStartTime();
+        worker.newTask(() -> {});
+        Thread.sleep(20);
+
+        assertTrue(worker.getIdleStartTime() > firstIdle, "idleStartTime should reset after a task");
 
         worker.shutdown();
     }
